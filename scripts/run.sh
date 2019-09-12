@@ -6,6 +6,7 @@ if [ "$#" -ne 2 ]; then
 fi
 
 source activate tensorflow_p36
+export CUDA_VISIBLE_DEVICES=''
 
 # python -u src/test.py $1 $2 | tee -i out_test_$1of$2.txt
 
@@ -22,6 +23,7 @@ declare -a arr=("1.0")
 ## now loop through the above array
 for eps in "${arr[@]}"
 do
-   python -u src/test.py $1 $2 test $eps
-   # or do whatever with individual element of the array
+    # echo $TASKSET_CPU
+    taskset -c $TASKSET_CPU python -u src/test.py $1 $2 test $eps
+    # or do whatever with individual element of the array
 done

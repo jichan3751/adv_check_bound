@@ -27,7 +27,7 @@ def main(RANK, WSIZE, dataset, eps):
         }
     ## overrides
     config["img_indices"]= range(2000,2100) # None is run with all dataset
-    # config["img_indices"]= range(10,11) # None is run with all dataset
+    # config["img_indices"]= range(10,12) # None is run with all dataset
 
 
     print('Running EXP for:')
