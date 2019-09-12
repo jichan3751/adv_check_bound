@@ -10,14 +10,14 @@ from util import *
 from model import *
 from load_model import *
 
-def main(RANK, WSIZE,dataset, eps):
+def main(RANK, WSIZE, dataset, eps):
 
     config = {
             "dataset":dataset, # 'train' or 'test'
             "max_epoch": 600,
-            "lr": 0.01, # base lr : 0.1, 0.05
-            "norm": "L2", # L2, Linf
-            "load_weight": "adv", # nat, adv, sec
+            "lr": 0.1, # base lr : 0.1, 0.05
+            "norm": "l2", # l2, linf
+            "load_weight": "nat", # nat, adv, sec
             "eps": eps,
             "num_reruns": 10, # number of different seed run
 
@@ -26,9 +26,8 @@ def main(RANK, WSIZE,dataset, eps):
             # "img_indices": range(10,15)
         }
     ## overrides
-    # config["img_indices"]= range(2000,2005) # None is run with all dataset
     config["img_indices"]= range(2000,2100) # None is run with all dataset
-    # config["img_indices"]= range(10,15) # None is run with all dataset
+    # config["img_indices"]= range(10,11) # None is run with all dataset
 
 
     print('Running EXP for:')
@@ -250,10 +249,10 @@ class MyModel(object):
 
         self.weights_nat = weight_nat()
 
-        self.v = weight_variable(stddev=0.1,shape = (1,28*28))
+        self.v = weight_variable(stddev=1.0,shape = (1,28*28))
 
 
-        self.input_image = self.x_pl + self.config['eps']*self.v_out
+        self.input_image = self.x_pl + self.v
 
         self.output = model_nat(self.input_image, self.weights_nat)
 
@@ -289,7 +288,7 @@ class MyModel(object):
         if self.config['norm'] == 'l2':
             self.clip_op = tf.assign(self.v, tf.clip_by_norm(self.v, self.config["eps"]))
         elif self.config['norm'] == 'linf':
-            v_normalized = self.v * tf.norm(self.v, ord = np.inf) * self.config["eps"]
+            v_normalized = self.v / tf.norm(self.v, ord = np.inf) * self.config["eps"]
             self.clip_op = tf.assign(self.v, v_normalized)
         else:
             assert 0
@@ -305,7 +304,7 @@ class MyModel(object):
         self.num_correct = tf.reduce_sum(tf.cast(self.correct_prediction, tf.int64))
         self.accuracy = tf.reduce_mean(tf.cast(self.correct_prediction, tf.float32))
 
-    def initialize_variable(self, sess, check_loss = None, threshold = 0.001):
+    def initialize_variable(self, sess, check_loss = None, threshold = 0.001, max_count = 100):
         verbose = 0
         if check_loss is None:
             sess.run([self.initialize_op, self.initialize_optimizer_op])
@@ -314,14 +313,17 @@ class MyModel(object):
             # initialize until intial loss is more than 1.0
             loss = 0.0
             ct = 0
-            while loss <= threshold and ct <100:
+            while loss <= threshold and ct <max_count:
                 sess.run([self.initialize_op, self.initialize_optimizer_op])
+
+                sess.run([self.clip_op])
+
                 loss , _ = self.eval(sess, x, y)
                 if verbose: print('init_loss',loss)
                 ct += 1
 
-            if ct == 100:
-                print("initialize check_loss th %.f failed")
+            if ct == max_count:
+                print("initialize check_loss th %f failed"%threshold)
 
     def train(self, sess, x, y, learning_rate, num_epoch=1, verbose = 0):
 

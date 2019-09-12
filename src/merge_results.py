@@ -15,7 +15,7 @@ def main(RANK, WSIZE,dataset, eps):
             "dataset":dataset, # 'train' or 'test'
             "max_epoch": 600,
             "lr": 0.01, # base lr : 0.1, 0.05
-            "norm": "L2", # L2, Linf
+            "norm": "l2", # L2, linf
             "load_weight": "adv", # nat, adv, sec
             "eps": eps,
             "num_reruns": 10, # number of different seed run
