@@ -11,6 +11,7 @@ from model import *
 from load_model import *
 
 def main(RANK, WSIZE, dataset, eps):
+    os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
     config = {
             "dataset":dataset, # 'train' or 'test'
@@ -22,12 +23,14 @@ def main(RANK, WSIZE, dataset, eps):
             "num_reruns": 10, # number of different seed run
 
             # optional
-            "img_indices": None # None is run with all dataset
-            # "img_indices": range(10,15)
+            "img_indices": range(2000,2100)
+            # "img_indices": None # None is run with all dataset
         }
+
     ## overrides
-    config["img_indices"]= range(2000,2100) # None is run with all dataset
+    # config["max_epoch"]= 10 # None is run with all dataset
     # config["img_indices"]= range(10,12) # None is run with all dataset
+    # config["num_reruns"] = 2
 
 
     print('Running EXP for:')
@@ -42,7 +45,7 @@ def main(RANK, WSIZE, dataset, eps):
         AA.run_train_save(rank=RANK, wsize = WSIZE)
 
     # merging
-    # if RANK ==0:
+    # if RANK ==0: # turn of run_train and setup
     #     with Timer(name = 'run_train') as t:
     #         AA.merge_results(wsize = WSIZE)
 
@@ -203,8 +206,8 @@ class Trainer(object):
         # print([st['corr'] for st in stats])
         # print([st['corr'] for st in stats_zero])
 
-        print('config:')
-        print(self.config)
+        # print('config:')
+        # print(self.config)
 
         print("trained avg_loss %f, avg_acc %f"%(avg_loss, avg_corrects ))
         print("zero avg_loss %f, avg_acc %f"%(avg_loss_zero, avg_corrects_zero ))

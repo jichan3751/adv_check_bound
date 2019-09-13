@@ -23,7 +23,7 @@ do
     # sleep 3 && echo $i & # runs background process called
 
     # python -u script_mp.py $i $NUM_PROC > out/out_rank$i.txt 2> out/err_rank$i.txt
-    TASKSET_CPU=$TASKSET_CPU ./scripts/run.sh $i $NUM_PROC > out/out_rank$i.txt 2>&1 &
+    OMP_NUM_THREADS=1 TASKSET_CPU=$TASKSET_CPU ./scripts/run.sh $i $NUM_PROC > out/out_rank$i.txt 2>&1 &
 
     # taskset -c $TASKSET_CPU python -u src/test.py $i $NUM_PROC test 5.0
 
